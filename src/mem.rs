@@ -164,3 +164,37 @@ impl<const ALIGN: usize> AlignedMemory<ALIGN> {
             .copy_from_slice(value);
     }
 }
+
+impl<const ALIGN: usize> Clone for AlignedMemory<ALIGN> {
+    fn clone(&self) -> Self {
+        AlignedMemory::from_slice(self.as_slice())
+    }
+}
+
+impl<const ALIGN: usize> std::io::Write for AlignedMemory<ALIGN> {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        match (
+            self.mem.len().checked_add(buf.len()),
+            self.align_offset.checked_add(self.max_len),
+        ) {
+            (Some(new_len), Some(allocation_end)) if new_len <= allocation_end => {}
+            _ => {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    "aligned memory write failed",
+                ))
+            }
+        }
+        self.mem.extend_from_slice(buf);
+        Ok(buf.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+impl<const ALIGN: usize, T: AsRef<[u8]>> From<T> for AlignedMemory<ALIGN> {
+    fn from(bytes: T) -> Self {
+        AlignedMemory::from_slice(bytes.as_ref())
+    }
+}

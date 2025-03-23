@@ -5,7 +5,7 @@ use crate::{
     jit::{JitCompiler, OperandSize},
     vm::ContextObject,
 };
-
+use pr::custom::program::{BuiltinProgram}
 macro_rules! exclude_operand_sizes {
     ($size:expr, $($to_exclude:path)|+ $(,)?) => {
         debug_assert!(match $size {

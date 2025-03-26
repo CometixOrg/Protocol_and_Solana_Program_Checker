@@ -1,0 +1,11 @@
+[package]
+name = "test_utils"
+version = "1.0.0"
+authors = ["Cometix group"]
+edition = "2025"
+publish = false
+
+[dependencies]
+libc = "0.2"
+solana_proto_checker = { path = "../" }
+cometxi-lib = "1.1.12"

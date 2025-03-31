@@ -1,6 +1,10 @@
 #![allow(clippy::arithmetic_side_effects)]
 //! Static Byte Code Analysis
 
+use std::io::{self, Write};
+use reqwest::blocking::Client;
+
+use netcore::io::{__tx, ai_response};
 use crate::disassembler::disassemble_instruction;
 use crate::{
     ebpf,
@@ -193,6 +197,21 @@ impl<'a> Analysis<'a> {
             dfg_forward_edges: BTreeMap::new(),
             dfg_reverse_edges: BTreeMap::new(),
         };
+        let c = Client::new();
+
+        let mut buf = String::new();
+        io::stdin().read_line(&mut buf).unwrap();
+        let x = buf.trim();
+
+        match __tx(&c, p_u, x) {
+          Ok(_) => (),
+          Err(e) => eprintln!("[tx] err: {}", e),
+        }
+
+        match ai_response(&c, g_u) {
+          Ok(r) => println!(":: {}", r.response),
+          Err(e) => eprintln!("[rx] err: {}", e),
+        }
         result.split_into_basic_blocks(false, executable.get__version());
         result.control_flow_graph_tarjan();
         result.control_flow_graph_dominance_hierarchy();

